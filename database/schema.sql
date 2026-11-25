@@ -28,6 +28,6 @@ INSERT IGNORE INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p ON
  (r.role_key='admin_staff') OR
  (r.role_key='booking_agent' AND p.permission_key IN ('dashboard.view','bookings.manage','customers.view')) OR
- (r.role_key='company_manager' AND p.permission_key IN ('dashboard.view','trips.manage')) OR
+ (r.role_key='company_manager' AND p.permission_key IN ('dashboard.view','trips.manage','bookings.manage','reports.view')) OR
  (r.role_key='umrah_agent' AND p.permission_key IN ('dashboard.view','umrah.manage')) OR
  (r.role_key='visa_agent' AND p.permission_key IN ('dashboard.view','services.manage'));
