@@ -1,7 +1,4 @@
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS=0;
-DROP TABLE IF EXISTS activity_logs, booking_passengers, bookings, trips, umrah_requests, umrah_programs, service_requests, services, customers, branches, companies, cities, role_permissions, permissions, users, roles, settings;
-SET FOREIGN_KEY_CHECKS=1;
 CREATE TABLE roles (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, role_key VARCHAR(60) NOT NULL UNIQUE, name VARCHAR(100) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE permissions (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, permission_key VARCHAR(100) NOT NULL UNIQUE, name VARCHAR(150) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE role_permissions (role_id BIGINT UNSIGNED NOT NULL, permission_id BIGINT UNSIGNED NOT NULL, PRIMARY KEY(role_id,permission_id), FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE, FOREIGN KEY(permission_id) REFERENCES permissions(id) ON DELETE CASCADE) ENGINE=InnoDB;
@@ -26,3 +23,12 @@ INSERT INTO role_permissions(role_id,permission_id) SELECT 2,id FROM permissions
 INSERT INTO settings(setting_key,setting_value) VALUES ('platform_name','أصل المتصدر'),('whatsapp_number','967733148606'),('default_currency','SAR');
 INSERT INTO cities(country_code,name_ar) VALUES ('YE','صنعاء'),('YE','عدن'),('YE','تعز'),('YE','إب'),('YE','الحديدة'),('SA','الرياض'),('SA','جدة'),('SA','مكة المكرمة'),('SA','المدينة المنورة'),('SA','الطائف'),('SA','نجران');
 INSERT INTO companies(name,slug,company_type,status) VALUES ('البركة الكهلاني','albaraka-alkahlani','transport','active'),('سماء حراء','samaa-hiraa','transport','active'),('المتصدر','al-motasader','transport','active'),('ترحال','terhal','transport','active');
+
+-- Default least-privilege role grants. The super_admin role bypasses these checks.
+INSERT IGNORE INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON
+ (r.role_key='admin_staff') OR
+ (r.role_key='booking_agent' AND p.permission_key IN ('dashboard.view','bookings.manage','customers.view')) OR
+ (r.role_key='company_manager' AND p.permission_key IN ('dashboard.view','trips.manage')) OR
+ (r.role_key='umrah_agent' AND p.permission_key IN ('dashboard.view','umrah.manage')) OR
+ (r.role_key='visa_agent' AND p.permission_key IN ('dashboard.view','services.manage'));
