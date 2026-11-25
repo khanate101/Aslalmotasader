@@ -11,9 +11,20 @@ final class Auth {
  }
  public static function requirePermission(string $permission): void { self::requireLogin(); if (!self::can($permission)) { http_response_code(403); exit('ليس لديك صلاحية لتنفيذ هذا الإجراء.'); } }
  public static function login(string $username,string $password): bool {
+  $key=hash('sha256',strtolower(trim($username)).'|'.($_SERVER['REMOTE_ADDR']??'unknown'));
+  $_SESSION['_login_attempts']=$_SESSION['_login_attempts']??[];
+  $state=$_SESSION['_login_attempts'][$key]??['count'=>0,'until'=>0];
+  if((int)$state['until']>time())return false;
+  if((int)$state['until']!==0 && (int)$state['until']<=time())$state=['count'=>0,'until'=>0];
   $q=Database::connection()->prepare("SELECT u.id,u.name,u.username,u.password_hash,u.role_id,u.company_id,u.branch_id,r.role_key FROM users u JOIN roles r ON r.id=u.role_id WHERE u.username=? AND u.status='active' LIMIT 1");
   $q->execute([$username]); $u=$q->fetch();
-  if (!$u || !password_verify($password,$u['password_hash'])) return false;
+  if (!$u || !password_verify($password,$u['password_hash'])) {
+   $state['count']=(int)$state['count']+1;
+   if($state['count']>=8){$state['until']=time()+900;$state['count']=0;}
+   $_SESSION['_login_attempts'][$key]=$state;
+   return false;
+  }
+  unset($_SESSION['_login_attempts'][$key]);
   session_regenerate_id(true); unset($u['password_hash']); $u['role']=$u['role_key']; $_SESSION['user']=$u;
   Database::connection()->prepare('UPDATE users SET last_login_at=NOW() WHERE id=?')->execute([$u['id']]);
   return true;
