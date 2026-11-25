@@ -16,7 +16,7 @@ final class Auth {
   $state=$_SESSION['_login_attempts'][$key]??['count'=>0,'until'=>0];
   if((int)$state['until']>time())return false;
   if((int)$state['until']!==0 && (int)$state['until']<=time())$state=['count'=>0,'until'=>0];
-  $q=Database::connection()->prepare("SELECT u.id,u.name,u.username,u.password_hash,u.role_id,u.company_id,u.branch_id,r.role_key FROM users u JOIN roles r ON r.id=u.role_id WHERE u.username=? AND u.status='active' LIMIT 1");
+  $q=Database::connection()->prepare("SELECT u.id,u.name,u.username,u.password_hash,u.role_id,u.company_id,u.branch_id,r.role_key FROM users u JOIN roles r ON r.id=u.role_id WHERE u.username=? AND u.status='active' AND (r.role_key<>'company_manager' OR EXISTS (SELECT 1 FROM companies co WHERE co.id=u.company_id AND co.status='active')) LIMIT 1");
   $q->execute([$username]); $u=$q->fetch();
   if (!$u || !password_verify($password,$u['password_hash'])) {
    $state['count']=(int)$state['count']+1;
