@@ -21,3 +21,5 @@ require_once BASE_PATH.'/app/helpers.php';
 require_once BASE_PATH.'/app/Database.php';
 require_once BASE_PATH.'/app/Security.php';
 require_once BASE_PATH.'/app/Auth.php';
+// Apply editable public settings after the database layer is available.
+try { $config['name'] = setting('platform_name', $config['name']); $config['whatsapp'] = preg_replace('/\\D+/', '', setting('whatsapp_number', $config['whatsapp'])); } catch (Throwable) { /* Keep environment defaults while database is unavailable. */ }
