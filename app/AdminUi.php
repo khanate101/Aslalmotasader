@@ -5,7 +5,7 @@ function admin_page_start(string $title, array $user): void {
  $adminLinks=[['الرئيسية','/admin/index.php','dashboard.view'],['الرحلات','/admin/trips.php','trips.manage'],['الحجوزات','/admin/bookings.php','bookings.manage'],['الشركات','/admin/companies.php','companies.manage'],['برامج العمرة','/admin/catalog.php?type=umrah','umrah.manage'],['الخدمات','/admin/catalog.php?type=service','services.manage'],['طلبات العمرة','/admin/requests.php','umrah.manage'],['الفروع','/admin/branches.php','companies.manage'],['المدن','/admin/cities.php','companies.manage'],['الموظفون','/admin/users.php','users.manage'],['التقارير','/admin/reports.php','reports.view'],['العملاء','/admin/customers.php','customers.view'],['الإعدادات','/admin/settings.php','settings.manage']];
  foreach($adminLinks as [$label,$url,$permission]) if(Auth::can($permission)) echo '<a href="'.e($url).'">'.e($label).'</a>';
  if(($user['role']??'')==='super_admin') echo '<a href="/admin/roles.php">الأدوار والصلاحيات</a>';
- if(Auth::can('settings.manage')) echo '<a href="/admin/activity.php">سجل النشاط</a><a href="/admin/settings.php">الإعدادات</a>';
+ if(Auth::can('settings.manage')) echo '<a href="/admin/activity.php">سجل النشاط</a>';
  ?><a href="/admin/index.php?logout=1">خروج</a></nav>';
 }
 function admin_page_end(): void { echo '</main></body></html>'; }
