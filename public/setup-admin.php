@@ -4,8 +4,8 @@ require dirname(__DIR__).'/app/bootstrap.php';
 $pdo=null;$error='';$done=false;
 try {
  $pdo=Database::connection();
- $count=(int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
- if($count>0){http_response_code(410);exit('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>تم إغلاق التهيئة</title><body style="font-family:sans-serif;max-width:650px;margin:60px auto;padding:20px"><h1>تم إغلاق صفحة إنشاء المدير</h1><p>يوجد حساب مستخدم بالفعل. احذف الملف public/setup-admin.php من المشروع ثم سجل الدخول.</p><a href="/admin/login.php">الذهاب إلى تسجيل الدخول</a></body></html>');}
+ $count=(int)$pdo->query("SELECT COUNT(*) FROM users u JOIN roles r ON r.id=u.role_id WHERE r.role_key='super_admin'")->fetchColumn();
+ if($count>0){http_response_code(410);exit('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>تم إغلاق التهيئة</title><body style="font-family:sans-serif;max-width:650px;margin:60px auto;padding:20px"><h1>تم إغلاق صفحة إنشاء المدير</h1><p>يوجد مدير نظام رئيسي بالفعل. احذف الملف public/setup-admin.php من المشروع ثم سجل الدخول.</p><a href="/admin/login.php">الذهاب إلى تسجيل الدخول</a></body></html>');}
  $setupKey=(string)(getenv('INITIAL_ADMIN_SETUP_KEY')?:'');
  if(strlen($setupKey)<32){http_response_code(503);exit('تهيئة المدير غير مفعلة. أضف مفتاحاً عشوائياً لا يقل عن 32 حرفاً إلى INITIAL_ADMIN_SETUP_KEY في ملف .env.');}
  if($_SERVER['REQUEST_METHOD']==='POST'){
@@ -21,7 +21,7 @@ try {
    if((int)$lock!==1)throw new RuntimeException('تعذر قفل التهيئة. أعد المحاولة.');
    try {
     $pdo->beginTransaction();
-    if((int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn()>0)throw new RuntimeException('تم إنشاء حساب مستخدم بالفعل. صفحة التهيئة مغلقة.');
+    if((int)$pdo->query("SELECT COUNT(*) FROM users u JOIN roles r ON r.id=u.role_id WHERE r.role_key='super_admin'")->fetchColumn()>0)throw new RuntimeException('تم إنشاء مدير النظام الرئيسي بالفعل. صفحة التهيئة مغلقة.');
     $role=$pdo->query("SELECT id FROM roles WHERE role_key='super_admin' LIMIT 1")->fetchColumn();
     if(!$role)throw new RuntimeException('استورد database/schema.sql أولاً.');
     $q=$pdo->prepare('INSERT INTO users(role_id,name,username,password_hash,status) VALUES(?,?,?,? ,\'active\')');
