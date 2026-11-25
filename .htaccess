@@ -1,0 +1,10 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Never expose application source, configuration, database scripts, or repository metadata.
+RewriteRule ^(app|config|database|scripts|\.git|\.github)(/|$) - [F,L,NC]
+RewriteRule ^\.env(?:$|/) - [F,L,NC]
+# Shared-hosting fallback when the domain document root cannot be set to /public.
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
