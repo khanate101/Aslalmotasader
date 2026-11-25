@@ -11,7 +11,7 @@ final class Auth {
  }
  public static function requirePermission(string $permission): void { self::requireLogin(); if (!self::can($permission)) { http_response_code(403); exit('ليس لديك صلاحية لتنفيذ هذا الإجراء.'); } }
  public static function login(string $username,string $password): bool {
-  $q=Database::connection()->prepare("SELECT u.id,u.name,u.username,u.password_hash,u.role_id,r.role_key FROM users u JOIN roles r ON r.id=u.role_id WHERE u.username=? AND u.status='active' LIMIT 1");
+  $q=Database::connection()->prepare("SELECT u.id,u.name,u.username,u.password_hash,u.role_id,u.company_id,u.branch_id,r.role_key FROM users u JOIN roles r ON r.id=u.role_id WHERE u.username=? AND u.status='active' LIMIT 1");
   $q->execute([$username]); $u=$q->fetch();
   if (!$u || !password_verify($password,$u['password_hash'])) return false;
   session_regenerate_id(true); unset($u['password_hash']); $u['role']=$u['role_key']; $_SESSION['user']=$u;
